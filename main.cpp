@@ -19,8 +19,8 @@ int main(int argc, char *argv[])
 	cv::Mat cpy(src);
 
 	ocv::downsample(cpy);
-	ocv::stuff_1(cpy);
-	ocv::stutter(cpy, cv::Rect(340, 250, 1, 20), 200);
+	// ocv::stuff_1(cpy);
+	// ocv::stutter(cpy, cv::Rect(340, 250, 1, 20), 200);
 
 	ocv::display(cpy);
 	cv::imwrite("/home/dozer/Pictures/output5.jpg", cpy);

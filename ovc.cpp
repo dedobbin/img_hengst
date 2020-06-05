@@ -4,6 +4,8 @@
 #include <cmath>
 #include <exception>
 
+typedef cv::Mat (*Conv_callback)(cv::Mat img);
+
 int rand_range(int min, int max)
 {
 	return min + ( std::rand() % ( max - min + 1 ) );
@@ -28,6 +30,37 @@ cv::Mat get_avg(cv::Mat img)
 		sums[2] ? sums[2]/ divider : 0,
 	});
 	return cv::Mat(img.rows, img.cols, CV_8UC3, {bgr[0], bgr[1],bgr[2]});
+}
+
+void convolusion(cv::Mat img, int w, int h, Conv_callback callback)
+{
+	int x = 0, y = 0;
+		cv::Mat res(img.rows, img.cols, CV_8UC3, {255, 0, 255});
+
+		for(;;){
+			for(;;){
+				callback(img({x, y, w, h})).copyTo(res({x, y, w, h}));
+
+				x+= w;
+				if (x + w > img.cols){
+					int leftover_w = w - (x + w - img.cols);
+					cv::Mat sub = callback(img({x, y, leftover_w, h}));
+					sub.copyTo(res({x, y, leftover_w, h}));
+					break;
+				}	
+			}
+			y+= h;
+			x = 0;
+			if (y + h > img.rows){
+				int leftover = h - (y + h - img.rows);
+				if (leftover){
+					h = leftover;
+				} else {	
+					break;
+				}
+			}
+		}
+		res.copyTo(img);
 }
 
 //-------------------------------------------------------------------
@@ -105,31 +138,5 @@ void ocv::stutter(cv::Mat img, cv::Rect src_rect, int x_times)
 
 void ocv::downsample(cv::Mat img, int w, int h)
 {	
-	int x = 0, y = 0;
-	cv::Mat res(img.rows, img.cols, CV_8UC3, {255, 0, 255});
-
-	for(;;){
-		for(;;){
-			get_avg(img({x, y, w, h})).copyTo(res({x, y, w, h}));
-
-			x+= w;
-			if (x + w > img.cols){
-				int leftover_w = w - (x + w - img.cols);
-				cv::Mat sub = get_avg(img({x, y, leftover_w, h}));
-				sub.copyTo(res({x, y, leftover_w, h}));
-				break;
-			}	
-		}
-		y+= h;
-		x = 0;
-		if (y + h > img.rows){
-			int leftover = h - (y + h - img.rows);
-			if (leftover){
-				h = leftover;
-			} else {	
-				break;
-			}
-		}
-	}
-	res.copyTo(img);
+	convolusion(img, w, h, get_avg);
 }
