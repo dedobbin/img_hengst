@@ -1,5 +1,5 @@
 .vscode
 hengster
-.o
-.a
-.so
+*.o
+*.a
+*.so

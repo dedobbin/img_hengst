@@ -2,7 +2,8 @@
 #include <opencv/cv.h>
 #include <opencv2/highgui.hpp>
 
-#include "img_hengst.hpp"
+#include "ovc.hpp"
+#include "jpeg.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -17,11 +18,11 @@ int main(int argc, char *argv[])
 
 	cv::Mat cpy(src);
 
-	downsample(cpy);
-	stuff_1(cpy);
-	stutter(cpy, cv::Rect(340, 250, 1, 20), 200);
+	ocv::downsample(cpy);
+	ocv::stuff_1(cpy);
+	ocv::stutter(cpy, cv::Rect(340, 250, 1, 20), 200);
 
-	display(cpy);
+	ocv::display(cpy);
 	cv::imwrite("/home/dozer/Pictures/output5.jpg", cpy);
 	
 	return 0;

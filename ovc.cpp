@@ -1,4 +1,4 @@
-#include "img_hengst.hpp"
+#include "ovc.hpp"
 #include <opencv2/imgproc/imgproc.hpp>
 #include <vector>
 #include <cmath>
@@ -31,14 +31,14 @@ cv::Mat get_avg(cv::Mat img)
 }
 
 //-------------------------------------------------------------------
-void display(const cv::Mat img)
+void ocv::display(const cv::Mat img)
 {
 	cv::namedWindow("display", cv::WINDOW_AUTOSIZE);
 	cv::imshow("display", img);
 	cv::waitKey(0);
 }
 
-void color_mod(cv::Mat img, const std::vector<cv::Vec3b> mods)
+void ocv::color_mod(cv::Mat img, const std::vector<cv::Vec3b> mods)
 {
 	int mods_index = 0;
 	for (int i = 0; i < img.rows; i++){
@@ -53,7 +53,7 @@ void color_mod(cv::Mat img, const std::vector<cv::Vec3b> mods)
 	}
 }
 
-void insert(cv::Mat dst, cv::Mat const src, const cv::Rect pos, int wonk_spacing)
+void ocv::insert(cv::Mat dst, cv::Mat const src, const cv::Rect pos, int wonk_spacing)
 {
 	bool do_draw = true;
 	for (int i = pos.y; i < pos.y + pos.height; i++){
@@ -70,7 +70,7 @@ void insert(cv::Mat dst, cv::Mat const src, const cv::Rect pos, int wonk_spacing
 }
 
 //Works good with solid color input
-void stuff_1(cv::Mat img, int max, int min, std::vector<cv::Vec3b> color_mod_param)
+void ocv::stuff_1(cv::Mat img, int max, int min, std::vector<cv::Vec3b> color_mod_param)
 {
 	for (int i = max; i >= min; i-- ){
 		cv::Mat altered = img.clone();
@@ -79,7 +79,7 @@ void stuff_1(cv::Mat img, int max, int min, std::vector<cv::Vec3b> color_mod_par
 	}
 }
 
-void stutter(cv::Mat img, cv::Rect src_rect, int x_times)
+void ocv::stutter(cv::Mat img, cv::Rect src_rect, int x_times)
 {
 	cv::Rect dst_rect = src_rect;
 	cv::Mat sub = img(src_rect);
@@ -103,9 +103,8 @@ void stutter(cv::Mat img, cv::Rect src_rect, int x_times)
 	}
 }
 
-void downsample(cv::Mat img, int w, int h)
+void ocv::downsample(cv::Mat img, int w, int h)
 {	
-	//TODO: make params
 	int x = 0, y = 0;
 	cv::Mat res(img.rows, img.cols, CV_8UC3, {255, 0, 255});
 
