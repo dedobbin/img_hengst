@@ -32,35 +32,52 @@ cv::Mat get_avg(cv::Mat img)
 	return cv::Mat(img.rows, img.cols, CV_8UC3, {bgr[0], bgr[1],bgr[2]});
 }
 
+cv::Mat vortex_callback(cv::Mat img)
+{
+	cv::Vec3b outer_color = img.at<cv::Vec3b>(0,0);
+	cv::Mat res(img);
+
+	for (int i = 0; i < img.rows; i ++){
+		for (int j = 0; j < img.cols; j++){
+			if (j == 0 || i == 0){
+				res.at<cv::Vec3b>(i, j) = outer_color;
+			} 
+		}
+	}
+	return res;
+}
+
 void convolusion(cv::Mat img, int w, int h, Conv_callback callback)
 {
 	int x = 0, y = 0;
-		cv::Mat res(img.rows, img.cols, CV_8UC3, {255, 0, 255});
+	cv::Mat res(img.rows, img.cols, CV_8UC3, {255, 0, 255});
 
+	for(;;){
 		for(;;){
-			for(;;){
-				callback(img({x, y, w, h})).copyTo(res({x, y, w, h}));
+			callback(img({x, y, w, h})).copyTo(res({x, y, w, h}));
 
-				x+= w;
-				if (x + w > img.cols){
-					int leftover_w = w - (x + w - img.cols);
+			x+= w;
+			if (x + w > img.cols){
+				int leftover_w = w - (x + w - img.cols);
+				if (leftover_w){
 					cv::Mat sub = callback(img({x, y, leftover_w, h}));
 					sub.copyTo(res({x, y, leftover_w, h}));
-					break;
-				}	
-			}
-			y+= h;
-			x = 0;
-			if (y + h > img.rows){
-				int leftover = h - (y + h - img.rows);
-				if (leftover){
-					h = leftover;
-				} else {	
-					break;
 				}
+				break;
+			}	
+		}
+		y+= h;
+		x = 0;
+		if (y + h > img.rows){
+			int leftover = h - (y + h - img.rows);
+			if (leftover){
+				h = leftover;
+			} else {	
+				break;
 			}
 		}
-		res.copyTo(img);
+	}
+	res.copyTo(img);
 }
 
 //-------------------------------------------------------------------
@@ -139,4 +156,9 @@ void ocv::stutter(cv::Mat img, cv::Rect src_rect, int x_times)
 void ocv::downsample(cv::Mat img, int w, int h)
 {	
 	convolusion(img, w, h, get_avg);
+}
+
+void ocv::vortex_stuff(cv::Mat img, int w, int h)
+{
+	convolusion(img, w, h, vortex_callback);
 }

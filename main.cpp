@@ -18,7 +18,8 @@ int main(int argc, char *argv[])
 
 	cv::Mat cpy(src);
 
-	ocv::downsample(cpy);
+	//ocv::downsample(cpy);
+	ocv::vortex_stuff(cpy, 50, 50);
 	// ocv::stuff_1(cpy);
 	// ocv::stutter(cpy, cv::Rect(340, 250, 1, 20), 200);
 
