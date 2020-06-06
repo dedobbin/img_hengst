@@ -4,50 +4,12 @@
 #include <cmath>
 #include <exception>
 
-typedef cv::Mat (*Conv_callback)(cv::Mat img);
-
 int rand_range(int min, int max)
 {
 	return min + ( std::rand() % ( max - min + 1 ) );
 }
 
-cv::Mat get_avg(cv::Mat img)
-{
-	unsigned int sums[3] = {0, 0, 0};
-	for (int i = 0; i < img.rows; i++){
-		for (int j = 0; j < img.cols; j++){
-			for (int k = 0; k <3; k++){
-				sums[k] += img.at<cv::Vec3b>(i,j)[k];
-			}
-		}
-	}
-
-	//TODO: get rid of warning
-	int divider = img.cols * img.rows;
-	cv::Scalar bgr = cv::Scalar({
-		sums[0]?  sums[0]/ divider : 0,
-		sums[1] ? sums[1]/ divider : 0,
-		sums[2] ? sums[2]/ divider : 0,
-	});
-	return cv::Mat(img.rows, img.cols, CV_8UC3, {bgr[0], bgr[1],bgr[2]});
-}
-
-cv::Mat vortex_callback(cv::Mat img)
-{
-	cv::Vec3b outer_color = img.at<cv::Vec3b>(0,0);
-	cv::Mat res(img);
-
-	for (int i = 0; i < img.rows; i ++){
-		for (int j = 0; j < img.cols; j++){
-			if (j == 0 || i == 0){
-				res.at<cv::Vec3b>(i, j) = outer_color;
-			} 
-		}
-	}
-	return res;
-}
-
-void convolusion(cv::Mat img, int w, int h, Conv_callback callback)
+void ovc::convolusion(cv::Mat img, Conv_callback callback, int w, int h)
 {
 	int x = 0, y = 0;
 	cv::Mat res(img.rows, img.cols, CV_8UC3, {255, 0, 255});
@@ -80,15 +42,64 @@ void convolusion(cv::Mat img, int w, int h, Conv_callback callback)
 	res.copyTo(img);
 }
 
-//-------------------------------------------------------------------
-void ocv::display(const cv::Mat img)
+
+cv::Mat ovc::get_avg(cv::Mat img)
+{
+	unsigned int sums[3] = {0, 0, 0};
+	for (int i = 0; i < img.rows; i++){
+		for (int j = 0; j < img.cols; j++){
+			for (int k = 0; k <3; k++){
+				sums[k] += img.at<cv::Vec3b>(i,j)[k];
+			}
+		}
+	}
+
+	//TODO: get rid of warning
+	int divider = img.cols * img.rows;
+	cv::Scalar bgr = cv::Scalar({
+		sums[0]?  sums[0]/ divider : 0,
+		sums[1] ? sums[1]/ divider : 0,
+		sums[2] ? sums[2]/ divider : 0,
+	});
+	return cv::Mat(img.rows, img.cols, CV_8UC3, {bgr[0], bgr[1],bgr[2]});
+}
+
+cv::Mat ovc::some_pixelate_callback(cv::Mat img)
+{
+	cv::Mat res(img);
+
+	for (int i = 0; i < img.rows; i ++){
+		for (int j = 0; j < img.cols; j++){
+			res.at<cv::Vec3b>(i, j) = img.at<cv::Vec3b>(0,0);
+
+		}
+	}
+	return res;
+}
+
+cv::Mat ovc::vortex_callback(cv::Mat img)
+{
+	cv::Mat res(img);
+
+	for (int i = 0; i < img.rows; i ++){
+		for (int j = 0; j < img.cols; j++){
+			int p = j > img.rows ? img.rows : j;
+			int q = i > img.cols ? img.cols : i;
+			res.at<cv::Vec3b>(i, j) = img.at<cv::Vec3b>(p,q);
+
+		}
+	}
+	return res;
+}
+
+void ovc::display(const cv::Mat img)
 {
 	cv::namedWindow("display", cv::WINDOW_AUTOSIZE);
 	cv::imshow("display", img);
 	cv::waitKey(0);
 }
 
-void ocv::color_mod(cv::Mat img, const std::vector<cv::Vec3b> mods)
+void ovc::color_mod(cv::Mat img, const std::vector<cv::Vec3b> mods)
 {
 	int mods_index = 0;
 	for (int i = 0; i < img.rows; i++){
@@ -103,7 +114,7 @@ void ocv::color_mod(cv::Mat img, const std::vector<cv::Vec3b> mods)
 	}
 }
 
-void ocv::insert(cv::Mat dst, cv::Mat const src, const cv::Rect pos, int wonk_spacing)
+void ovc::insert(cv::Mat dst, cv::Mat const src, const cv::Rect pos, int wonk_spacing)
 {
 	bool do_draw = true;
 	for (int i = pos.y; i < pos.y + pos.height; i++){
@@ -120,7 +131,7 @@ void ocv::insert(cv::Mat dst, cv::Mat const src, const cv::Rect pos, int wonk_sp
 }
 
 //Works good with solid color input
-void ocv::stuff_1(cv::Mat img, int max, int min, std::vector<cv::Vec3b> color_mod_param)
+void ovc::stuff_1(cv::Mat img, int max, int min, std::vector<cv::Vec3b> color_mod_param)
 {
 	for (int i = max; i >= min; i-- ){
 		cv::Mat altered = img.clone();
@@ -129,7 +140,7 @@ void ocv::stuff_1(cv::Mat img, int max, int min, std::vector<cv::Vec3b> color_mo
 	}
 }
 
-void ocv::stutter(cv::Mat img, cv::Rect src_rect, int x_times)
+void ovc::stutter(cv::Mat img, cv::Rect src_rect, int x_times)
 {
 	cv::Rect dst_rect = src_rect;
 	cv::Mat sub = img(src_rect);
@@ -151,14 +162,4 @@ void ocv::stutter(cv::Mat img, cv::Rect src_rect, int x_times)
 			break;
 		}
 	}
-}
-
-void ocv::downsample(cv::Mat img, int w, int h)
-{	
-	convolusion(img, w, h, get_avg);
-}
-
-void ocv::vortex_stuff(cv::Mat img, int w, int h)
-{
-	convolusion(img, w, h, vortex_callback);
 }

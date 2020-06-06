@@ -18,12 +18,13 @@ int main(int argc, char *argv[])
 
 	cv::Mat cpy(src);
 
-	//ocv::downsample(cpy);
-	ocv::vortex_stuff(cpy, 50, 50);
+	//ovc::convolusion(cpy, ovc::get_avg, 10, 10);
+	//ovc::convolusion(cpy, ovc::some_pixelate_callback, 10, 10);
+	ovc::convolusion(cpy, ovc::vortex_callback, 100, 10);
 	// ocv::stuff_1(cpy);
 	// ocv::stutter(cpy, cv::Rect(340, 250, 1, 20), 200);
 
-	ocv::display(cpy);
+	ovc::display(cpy);
 	cv::imwrite("/home/dozer/Pictures/output5.jpg", cpy);
 	
 	return 0;
