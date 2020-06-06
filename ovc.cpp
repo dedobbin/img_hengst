@@ -130,7 +130,6 @@ void ovc::insert(cv::Mat dst, cv::Mat const src, const cv::Rect pos, int wonk_sp
 	}
 }
 
-//Works good with solid color input
 void ovc::stuff_1(cv::Mat img, int max, int min, std::vector<cv::Vec3b> color_mod_param)
 {
 	for (int i = max; i >= min; i-- ){

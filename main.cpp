@@ -5,27 +5,35 @@
 #include "ovc.hpp"
 #include "jpeg.hpp"
 
-int main(int argc, char *argv[])
+void test_one(bool solid_color = true)
 {
-	std::string path = "/home/dozer/Pictures/beatles1.jpg";
-	cv::Mat src;
-	src = cv::imread(path, CV_LOAD_IMAGE_COLOR);
-  
-	if(! src.data ) {
-    	std::cerr <<  "Could not open image" << std::endl ;
-    	return 1;
+	cv::Mat to_mutate;
+	if (!solid_color){
+		std::string path = "/home/dozer/Pictures/beatles1.jpg";
+		cv::Mat src;
+		src = cv::imread(path, CV_LOAD_IMAGE_COLOR);
+		if(! src.data ) {
+			std::cerr <<  "Could not open image" << std::endl ;
+			return;
+		}
+		to_mutate = cv::Mat(src);
+	} else {
+		to_mutate = cv::Mat (600, 600, CV_8UC3, {255, 0, 255});
 	}
 
-	cv::Mat cpy(src);
+	ovc::stuff_1(to_mutate);
+	ovc::convolusion(to_mutate, ovc::get_avg, 10, 10);
+	ovc::convolusion(to_mutate, ovc::some_pixelate_callback, 10, 10);
+	ovc::convolusion(to_mutate, ovc::vortex_callback, 10, 10);
+	//ovc::stutter(to_mutate, cv::Rect(340, 250, 1, 20), 200);
 
-	//ovc::convolusion(cpy, ovc::get_avg, 10, 10);
-	//ovc::convolusion(cpy, ovc::some_pixelate_callback, 10, 10);
-	ovc::convolusion(cpy, ovc::vortex_callback, 100, 10);
-	// ocv::stuff_1(cpy);
-	// ocv::stutter(cpy, cv::Rect(340, 250, 1, 20), 200);
+	ovc::display(to_mutate);
+	cv::imwrite("/home/dozer/Pictures/output5.png", to_mutate);
+}
 
-	ovc::display(cpy);
-	cv::imwrite("/home/dozer/Pictures/output5.jpg", cpy);
-	
+
+int main(int argc, char *argv[])
+{
+	test_one(false);
 	return 0;
 }
