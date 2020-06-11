@@ -1,4 +1,4 @@
-LIB_OBJECTS=ovc.o jpeg.o
+LIB_OBJECTS=ovc.o jpeg.o mem_hengst.o
 LIB_OUTPUT=img_hengst.a
 EXE_FILES=main.cpp
 EXE_OUTPUT=hengster
@@ -10,13 +10,13 @@ all:	lib exe
 
 lib: $(LIB_OBJECTS)
 	ar rcs $(LIB_OUTPUT) $(LIB_OBJECTS)
-
 ovc.o:	ovc.cpp ovc.hpp
 	$(CC) -c ovc.cpp  $(COMPILER_FLAGS)
 
 jpeg.o:	jpeg.cpp jpeg.hpp
 	$(CC) -c jpeg.cpp  $(COMPILER_FLAGS)
-
+mem_hengst.o: mem_hengst.cpp mem_hengst.hpp
+	$(CC) -c mem_hengst.cpp $(COMPILER_FLAGS)
 exe:
 	$(CC) $(EXE_FILES) $(LIB_OUTPUT) $(COMPILER_FLAGS) -o $(EXE_OUTPUT) $(LINKER_FLAGS)
 

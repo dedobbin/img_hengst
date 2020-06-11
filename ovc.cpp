@@ -1,4 +1,5 @@
 #include "ovc.hpp"
+#include "mem_hengst.hpp"
 #include <opencv2/imgproc/imgproc.hpp>
 #include <vector>
 #include <cmath>
@@ -6,11 +7,6 @@
 #include <unistd.h> 
 #include <fstream>
 #include <regex>
-#include <sys/ptrace.h>
-#include <sys/wait.h>
-#include <sys/stat.h> 
-#include <fcntl.h>
-#include <sys/uio.h>
 
 enum direction{
 	UP, 
@@ -23,101 +19,6 @@ int rand_range(int min, int max)
 {
 	//todo: seed?
 	return min + ( std::rand() % ( max - min + 1 ) );
-}
-
-
-struct Proc_map_entry
-{
-	uint64_t address_start;
-	uint64_t address_end;
-	std::string permissions;
-	std::string offset;
-	std::string device;
-	std::string inode;
-	std::string pathname;
-};
-
-void print_pme(Proc_map_entry pme)
-{
-	std::cout << pme.address_start << "-" << pme.address_start << std::endl;
-	std::cout << "Permissions: \t " << pme.permissions << std::endl;
-	std::cout << "Offset: \t " << pme.offset << std::endl;
-	std::cout << "Device: \t " << pme.device << std::endl;
-	std::cout << "inode: \t\t " << pme.inode << std::endl;
-	std::cout << "pathname: \t " << pme.pathname << std::endl;
-}
-
-std::vector<Proc_map_entry> get_proc_map_entries(pid_t pid)
-{
-	std::vector<Proc_map_entry> res;
-	std::ifstream file("/proc/" + std::to_string(pid) + "/maps");
-	if (file.is_open()) {
-		std::string line;
-		while (std::getline(file, line)) {
-			//printf("%s\n", line.c_str());
-			std::regex regex{R"([ ]+)"};
-			std::sregex_token_iterator it{line.begin(), line.end(), regex, -1};
-			std::vector<std::string> splits{it, {}};
-
-			std::regex regex2{R"([-]+)"};
-			std::sregex_token_iterator it2{splits[0].begin(), splits[0].end(), regex2, -1};
-			std::vector<std::string> address_range{it2, {}};
-
-			Proc_map_entry pme{
-				strtol( address_range[0].c_str(), NULL, 16 ),
-				strtol( address_range[1].c_str(), NULL, 16 ),
-				splits[1],
-				splits[2],
-				splits[3],
-				splits[4],
-				splits.size() == 6 ? splits[5] : "",
-			};
-			res.push_back(pme);
-		}
-		file.close();
-	}
-	return res;
-}
-
-void* get_process_mem(pid_t pid, uint64_t address_start, size_t bufferLength)
-{
-    void *remotePtr = (void *)address_start;
-
-    struct iovec local[1];
-    local[0].iov_base = calloc(bufferLength, sizeof(char));
-    local[0].iov_len = bufferLength;
-
-    struct iovec remote[1];
-    remote[0].iov_base = remotePtr;
-    remote[0].iov_len = bufferLength;
-
-    ssize_t nread = process_vm_readv(pid, local, 2, remote, 1, 0);
-    if (nread < 0) {
-        switch (errno) {
-            case EINVAL:
-              std::cerr << "ERROR: INVALID ARGUMENTS" << std::endl;
-              break;
-            case EFAULT:
-              std::cerr << "ERROR: UNABLE TO ACCESS TARGET MEMORY ADDRESS" << std::endl;
-              break;
-            case ENOMEM:
-              std::cerr << "ERROR: UNABLE TO ALLOCATE MEMORY" << std::endl;
-              break;
-            case EPERM:
-              std::cerr << "ERROR: INSUFFICIENT PRIVILEGES TO TARGET PROCESS" << std::endl;
-              break;
-            case ESRCH:
-              std::cerr << "ERROR: PROCESS DOES NOT EXIST" <<std::endl;
-              break;
-            default:
-              std::cerr << "ERROR: AN UNKNOWN ERROR HAS OCCURRED" << std::endl;
-        }
-
-        return NULL;
-    }
-    //printf("%s\n", local[0].iov_base);
-
-    return local[0].iov_base;
 }
 
 std::vector<cv::Vec3b> flatten (cv::Mat img)
@@ -376,11 +277,11 @@ cv::Mat ovc::stuff_generator(int proc_map_index, int w, int max_h, int offset)
 {
 	int num_channels = 3;
 	pid_t pid = getpid();
-	std::vector<Proc_map_entry> proc_map = get_proc_map_entries(pid);
+	std::vector<mem_hengst::Proc_map_entry> proc_map = mem_hengst::get_proc_map_entries(pid);
 	
 	print_pme(proc_map[proc_map_index]);
 	size_t data_len =  proc_map[proc_map_index].address_end - proc_map[proc_map_index].address_start - offset;
-	uint8_t* data= (uint8_t*)get_process_mem(pid, proc_map[proc_map_index].address_start + offset, data_len);
+	uint8_t* data= (uint8_t*)mem_hengst::get_process_mem(pid, proc_map[proc_map_index].address_start + offset, data_len);
 	
 	//printf("%s\n",data);	
 
