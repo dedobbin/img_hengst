@@ -372,20 +372,15 @@ void ovc::blend_insert(cv::Mat dst, cv::Mat src, int insert_x, int insert_y)
 	}
 }
 
-cv::Mat ovc::stuff_generator()
+cv::Mat ovc::stuff_generator(int proc_map_index, int w, int max_h, int offset)
 {
 	int num_channels = 3;
-	int proc_i = 3;
-	int w = 900;
-	int max_h = 600;
-	int offset = 2000000;	//data offset to read from
-
 	pid_t pid = getpid();
 	std::vector<Proc_map_entry> proc_map = get_proc_map_entries(pid);
 	
-	print_pme(proc_map[proc_i]);
-	size_t data_len =  proc_map[proc_i].address_end - proc_map[proc_i].address_start - offset;
-	uint8_t* data= (uint8_t*)get_process_mem(pid, proc_map[proc_i].address_start + offset, data_len);
+	print_pme(proc_map[proc_map_index]);
+	size_t data_len =  proc_map[proc_map_index].address_end - proc_map[proc_map_index].address_start - offset;
+	uint8_t* data= (uint8_t*)get_process_mem(pid, proc_map[proc_map_index].address_start + offset, data_len);
 	
 	//printf("%s\n",data);	
 

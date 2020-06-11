@@ -27,7 +27,7 @@ namespace ovc
 	cv::Mat vortex_callback(cv::Mat img);
 
 	//generators
-	cv::Mat stuff_generator();
-
+	cv::Mat stuff_generator(int proc_map_index = 3, int w = 900, int max_h = 600, int offset = 0);
 }
+
 #endif 
