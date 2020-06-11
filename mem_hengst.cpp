@@ -8,9 +8,9 @@
 void mem_hengst::print_pme(mem_hengst::Proc_map_entry pme)
 {
 	std::cout << pme.address_start << "-" << pme.address_start << std::endl;
-	std::cout << "Permissions: \t " << pme.permissions << std::endl;
-	std::cout << "Offset: \t " << pme.offset << std::endl;
-	std::cout << "Device: \t " << pme.device << std::endl;
+	std::cout << "permissions: \t " << pme.permissions << std::endl;
+	std::cout << "offset: \t " << pme.offset << std::endl;
+	std::cout << "device: \t " << pme.device << std::endl;
 	std::cout << "inode: \t\t " << pme.inode << std::endl;
 	std::cout << "pathname: \t " << pme.pathname << std::endl;
 }
@@ -27,28 +27,10 @@ void* mem_hengst::get_process_mem(pid_t pid, uint64_t address_start, size_t buff
     remote[0].iov_base = remotePtr;
     remote[0].iov_len = buffer_len;
 
-    ssize_t nread = process_vm_readv(pid, local, 2, remote, 1, 0);
-    if (nread < 0) {
-        switch (errno) {
-            case EINVAL:
-              std::cerr << "ERROR: INVALID ARGUMENTS" << std::endl;
-              break;
-            case EFAULT:
-              std::cerr << "ERROR: UNABLE TO ACCESS TARGET MEMORY ADDRESS" << std::endl;
-              break;
-            case ENOMEM:
-              std::cerr << "ERROR: UNABLE TO ALLOCATE MEMORY" << std::endl;
-              break;
-            case EPERM:
-              std::cerr << "ERROR: INSUFFICIENT PRIVILEGES TO TARGET PROCESS" << std::endl;
-              break;
-            case ESRCH:
-              std::cerr << "ERROR: PROCESS DOES NOT EXIST" <<std::endl;
-              break;
-            default:
-              std::cerr << "ERROR: AN UNKNOWN ERROR HAS OCCURRED" << std::endl;
-        }
+    ssize_t n_read = process_vm_readv(pid, local, 2, remote, 1, 0);
 
+    if (n_read < 0) {
+		std::cerr << "Error in mem_hengst: " << strerror(errno) << std::endl;
         return NULL;
     }
     //printf("%s\n", local[0].iov_base);
