@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <opencv/cv.h>
 #include <opencv2/highgui.hpp>
+#include <unistd.h> 
 
 #include "ovc.hpp"
 #include "jpeg.hpp"
+#include "mem_hengst.hpp"
 
 void test_one(bool solid_color = true)
 {
@@ -51,12 +53,37 @@ void test_three()
 	cv::imwrite("/home/dozer/Pictures/some_output.png", img);
 }
 
+void test_mem_hengst()
+{
+	int proc_map_index = 12;
+
+	pid_t pid = getpid();
+	std::vector<mem_hengst::Proc_map_entry> proc_map = mem_hengst::get_proc_map_entries(pid);
+	
+	mem_hengst::print_pme(proc_map[proc_map_index]);
+
+	uint64_t start = proc_map[proc_map_index].address_start;
+	int buffer_len = 10;
+	
+	uint8_t* data= (uint8_t*)mem_hengst::read_process_mem(pid, start, buffer_len);
+	printf("Read '%s'\n", data);
+
+	uint8_t new_data[10] = "test";
+	printf("Will write '%s'\n", new_data);
+	mem_hengst::write_process_mem(pid, start, new_data, buffer_len);	
+
+	free(data);
+	data= (uint8_t*)mem_hengst::read_process_mem(pid, start, buffer_len);
+	printf("Read '%s'\n", data);
+	free(data);
+}
+
 int main(int argc, char *argv[])
 {
 	// test_one(false);
 	// test_two();
-	test_three();
-
+	//test_three();
+	test_mem_hengst();
 	// cv::Mat img(500, 500, CV_8UC3, {255, 0, 255});
 	// ovc::pixel_walk(img);
 	// ovc::display(img);

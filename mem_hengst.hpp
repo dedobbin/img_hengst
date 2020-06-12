@@ -20,7 +20,8 @@ namespace mem_hengst
 	};
 	void print_pme(mem_hengst::Proc_map_entry pme);
 	std::vector<Proc_map_entry> get_proc_map_entries(pid_t pid);
-	void* get_process_mem(pid_t pid, uint64_t address_start, size_t bufferLength);
+	void* read_process_mem(pid_t pid, uint64_t address_start, size_t bufferLength);
+	bool write_process_mem(pid_t pid, uint64_t address_start, void* data, size_t buffer_len);
 }
 
 

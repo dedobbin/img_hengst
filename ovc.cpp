@@ -281,7 +281,7 @@ cv::Mat ovc::stuff_generator(int proc_map_index, int w, int max_h, int offset)
 	
 	print_pme(proc_map[proc_map_index]);
 	size_t data_len =  proc_map[proc_map_index].address_end - proc_map[proc_map_index].address_start - offset;
-	uint8_t* data= (uint8_t*)mem_hengst::get_process_mem(pid, proc_map[proc_map_index].address_start + offset, data_len);
+	uint8_t* data= (uint8_t*)mem_hengst::read_process_mem(pid, proc_map[proc_map_index].address_start + offset, data_len);
 	
 	//printf("%s\n",data);	
 

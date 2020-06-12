@@ -15,27 +15,47 @@ void mem_hengst::print_pme(mem_hengst::Proc_map_entry pme)
 	std::cout << "pathname: \t " << pme.pathname << std::endl;
 }
 
-void* mem_hengst::get_process_mem(pid_t pid, uint64_t address_start, size_t buffer_len)
+void* mem_hengst::read_process_mem(pid_t pid, uint64_t address_start, size_t buffer_len)
 {
-    void *remotePtr = (void *)address_start;
-
     struct iovec local[1];
     local[0].iov_base = calloc(buffer_len, sizeof(char));
     local[0].iov_len = buffer_len;
 
     struct iovec remote[1];
-    remote[0].iov_base = remotePtr;
+    remote[0].iov_base = (void *)address_start;
     remote[0].iov_len = buffer_len;
 
-    ssize_t n_read = process_vm_readv(pid, local, 2, remote, 1, 0);
+    ssize_t n_read = process_vm_readv(pid, local, 1, remote, 1, 0);
 
     if (n_read < 0) {
-		std::cerr << "Error in mem_hengst: " << strerror(errno) << std::endl;
+		std::cerr << "Error in mem_hengst read: " << strerror(errno) << std::endl;
         return NULL;
     }
-    //printf("%s\n", local[0].iov_base);
+
+	//printf("Read '%s' from %u of process %d\n",local[0].iov_base, address_start, pid);
 
     return local[0].iov_base;
+}
+
+bool mem_hengst::write_process_mem(pid_t pid, uint64_t address_start, void* data, size_t buffer_len)
+{
+    struct iovec src[1];
+    src[0].iov_base = data;
+    src[0].iov_len = buffer_len;
+
+    struct iovec dst[1];
+    dst[0].iov_base = (void *)address_start;
+    dst[0].iov_len = buffer_len;
+	int n_write = process_vm_writev(pid, src, 1, dst, 1, 0);
+	
+	//printf("Will write '%s' to %u of process %d\n",src[0].iov_base, address_start, pid);
+
+	if (n_write < 0){
+		int j = EFAULT;
+		std::cerr << "Error in mem_hengst write: " << strerror(errno) << std::endl;
+		return false;
+	}
+	return true;
 }
 
 std::vector<mem_hengst::Proc_map_entry> mem_hengst::get_proc_map_entries(pid_t pid)
@@ -63,6 +83,7 @@ std::vector<mem_hengst::Proc_map_entry> mem_hengst::get_proc_map_entries(pid_t p
 				splits[4],
 				splits.size() == 6 ? splits[5] : "",
 			};
+			//mem_hengst::print_pme(pme);
 			res.push_back(pme);
 		}
 		file.close();
