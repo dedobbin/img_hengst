@@ -78,15 +78,26 @@ void test_mem_hengst()
 	free(data);
 }
 
+void test_four()
+{
+	cv::Mat img(500, 500, CV_8UC3, {255, 0, 255});
+	ovc::pixel_walk(img);
+	ovc::display(img);
+}
+
+void test_five()
+{
+	cv::Mat img = ovc::stuff_generator(4);
+	cv::imwrite("/home/dozer/Pictures/mem324872389478923.png", img);
+	ovc::display(img);
+}
+
 int main(int argc, char *argv[])
 {
 	// test_one(false);
 	// test_two();
-	//test_three();
-	test_mem_hengst();
-	// cv::Mat img(500, 500, CV_8UC3, {255, 0, 255});
-	// ovc::pixel_walk(img);
-	// ovc::display(img);
-
+	// test_three();
+	// test_four();
+	 test five();
 	return 0;
 }

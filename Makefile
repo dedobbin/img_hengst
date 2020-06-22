@@ -21,4 +21,4 @@ exe:
 	$(CC) $(EXE_FILES) $(LIB_OUTPUT) $(COMPILER_FLAGS) -o $(EXE_OUTPUT) $(LINKER_FLAGS)
 
 clean:
-	rm *.o $(LIB_OUTPUT) $(EXE_OUTPUT) 
+	rm -f *.o $(LIB_OUTPUT) $(EXE_OUTPUT) 
