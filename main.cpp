@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <opencv/cv.h>
 #include <opencv2/highgui.hpp>
+#include<opencv2/opencv.hpp>
 #include <unistd.h> 
 
 #include "ovc.hpp"
@@ -58,11 +59,16 @@ void test_mem_hengst()
 	int proc_map_index = 12;
 
 	pid_t pid = getpid();
-	std::vector<mem_hengst::Proc_map_entry> proc_map = mem_hengst::get_proc_map_entries(pid);
+	std::vector<mem_hengst::Proc_map_entry> mem_map = mem_hengst::get_proc_map_entries(pid);
 	
-	mem_hengst::print_pme(proc_map[proc_map_index]);
+	mem_hengst::print_pme(mem_map[proc_map_index]);
 
-	uint64_t start = proc_map[proc_map_index].address_start;
+	if (mem_map[proc_map_index].permissions.substr(1,1) != "w"){
+		std::cout << "No permission to write to memory" << std::endl;
+		return;
+	}
+
+	uint64_t start = mem_map[proc_map_index].address_start;
 	int buffer_len = 10;
 	
 	uint8_t* data= (uint8_t*)mem_hengst::read_process_mem(pid, start, buffer_len);
@@ -98,6 +104,6 @@ int main(int argc, char *argv[])
 	// test_two();
 	// test_three();
 	// test_four();
-	 test five();
+	 test_five();
 	return 0;
 }

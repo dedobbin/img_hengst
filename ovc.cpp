@@ -276,25 +276,23 @@ void ovc::blend_insert(cv::Mat dst, cv::Mat src, int insert_x, int insert_y)
 cv::Mat ovc::stuff_generator(int proc_map_index, int w, int max_h, int offset)
 {
 	int num_channels = 3;
-	pid_t pid = getpid();
-	std::vector<mem_hengst::Proc_map_entry> proc_map = mem_hengst::get_proc_map_entries(pid);
-	
-	print_pme(proc_map[proc_map_index]);
-	size_t data_len =  proc_map[proc_map_index].address_end - proc_map[proc_map_index].address_start - offset;
-	uint8_t* data= (uint8_t*)mem_hengst::read_process_mem(pid, proc_map[proc_map_index].address_start + offset, data_len);
-	
-	//printf("%s\n",data);	
+ 
+}
 
-	//some bytes will be lost because rounding
-	int n_pixels = data_len / num_channels;
-	int h = std::min(n_pixels / w, max_h);
-	cv::Mat output = cv::Mat(h, w, CV_8UC(num_channels), data).clone();
-	
-	free(data);
+void ovc::stuff_5(cv::Mat img)
+{
+	cv::Mat gray;
+	cv::cvtColor(img,gray,CV_RGB2GRAY);
+   	
+	cv::Mat high_contrast;
+    gray.convertTo(high_contrast, -1, 4, 0);
 
-	if (output.cols == 0 || output.rows == 0){
-		std::cerr << "Incorrect image size, probably not enough data for requested width " << w << std::endl; 
-	}
+  	// cv::Mat low_contrast;
+    // gray.convertTo(low_contrast, -1, 0.5, 0);
 
-	return output;
+	cv::Mat mask;
+	inRange(high_contrast, cv::Scalar(255,255,255), cv::Scalar(255,255,255), mask);
+	high_contrast.setTo(cv::Scalar(255,0,255), mask);
+
+	ovc::display(high_contrast);
 }
