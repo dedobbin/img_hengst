@@ -13,10 +13,9 @@ namespace ovc
 
 	void color_mod(cv::Mat img, const std::vector<cv::Vec3b> mods);
 	void wonk_insert(cv::Mat dst, cv::Mat const src, const cv::Rect pos, int wonk_spacing = 0);
-	void stuff_1(cv::Mat img, int max = 100, int min = 90, std::vector<cv::Vec3b> color_mod_param = {{100, 0, 70}});	//Works best? with solid color input
+	void stuff_one(cv::Mat img, int max = 100, int min = 90, std::vector<cv::Vec3b> color_mod_param = {{100, 0, 70}});	//Works best? with solid color input
 	void stutter(cv::Mat img, cv::Rect src_rect = cv::Rect(340, 250, 1, 20), int x_times = 99999);
 	void insert(cv::Mat dst, cv::Mat const src, const cv::Rect pos, int wonk_spacing=0);
-	void pixel_walk(cv::Mat img);
 	void stuff_5(cv::Mat img);
 	
 	void blend_insert(cv::Mat dst, cv::Mat src, int insert_x, int insert_y);

@@ -1,5 +1,6 @@
 #include "ovc.hpp"
 #include "mem_hengst.hpp"
+
 #include <opencv2/imgproc/imgproc.hpp>
 #include <vector>
 #include <cmath>
@@ -7,6 +8,7 @@
 #include <unistd.h> 
 #include <fstream>
 #include <regex>
+
 
 enum direction{
 	UP, 
@@ -152,7 +154,7 @@ void ovc::insert(cv::Mat dst, cv::Mat const src, const cv::Rect pos, int wonk_sp
 	}
 }
 
-void ovc::stuff_1(cv::Mat img, int max, int min, std::vector<cv::Vec3b> color_mod_param)
+void ovc::stuff_one(cv::Mat img, int max, int min, std::vector<cv::Vec3b> color_mod_param)
 {
 	for (int i = max; i >= min; i-- ){
 		cv::Mat altered = img.clone();
@@ -200,64 +202,6 @@ bool check_collision(cv::Rect a, cv::Rect b)
 	return (! (x3 > x2 || y3 > y2 || x1 > x4 || y1 > y4));
 }
 
-//WIP
-void ovc::pixel_walk(cv::Mat img)
-{
-	std::cerr << "wip" << std::endl;
-	exit(1);
-
-	cv::Mat src_img = cv::imread("/home/dozer/Pictures/beatles1.jpg");
-	ovc::convolusion(src_img, ovc::some_pixelate_callback, 1, 10);
-	std::vector<cv::Vec3b> flat = flatten(src_img);
-
-	int max_inserts = 5000;
-
-	direction dir = DOWN;
-
-	std::vector<cv::Rect> path;
-
-	int x = img.cols/2, y = img.rows/2, w = 7, h = 7;
-	for (;;){
-		path.push_back({x, y, w, h});
-
-		//random change dir sometimes
-		if (max_inserts % 5 == 0){
-			dir = (direction)rand_range(0,3);
-		}
-
-		switch (dir){
-			case (UP):
-				y -= h;
-			break;
-			case (RIGHT):
-				x += w;
-			break;
-			case (DOWN):
-				y += h;
-			break;
-			case (LEFT):
-				x -= w;
-			break;
-		}
-
-		if (!max_inserts--){
-			break;
-		}
-	}
-
-	int i = 0;
-	for (auto pos : path){
-		if (pos.x + w > img.cols || pos.y + h > img.rows || pos.x < 0 || pos.y < 0){
-			std::cout << "Cannot insert" << std::endl;
-			//TODO: partial insert?
-		} else {
-			src_img({pos.x, pos.y, pos.width, pos.height}).copyTo(img({pos.x, pos.y, pos.width, pos.height}));
-			//img.at<cv::Vec3b>(pos.y, pos.x) = src_img.at(i);
-		}
-		i++;
-	}
-}
-
 void ovc::blend_insert(cv::Mat dst, cv::Mat src, int insert_x, int insert_y)
 {
 	for (int i = 0; i < src.rows; i++){
@@ -276,6 +220,27 @@ void ovc::blend_insert(cv::Mat dst, cv::Mat src, int insert_x, int insert_y)
 cv::Mat ovc::stuff_generator(int proc_map_index, int w, int max_h, int offset)
 {
 	int num_channels = 3;
+	pid_t pid = getpid();
+	std::vector<mem_hengst::Proc_map_entry> proc_map = mem_hengst::get_proc_map_entries(pid);
+	
+	//mem_hengst::print_pme(proc_map[proc_map_index]);
+	size_t data_len =  proc_map[proc_map_index].address_end - proc_map[proc_map_index].address_start - offset;
+	uint8_t* data= (uint8_t*)mem_hengst::read_process_mem(pid, proc_map[proc_map_index].address_start + offset, data_len);
+	if (!data){
+		return cv::Mat();
+	}	
+
+	//some bytes will be lost because rounding
+	int n_pixels = data_len / num_channels;
+	int h = std::min(n_pixels / w, max_h);
+	cv::Mat output = cv::Mat(h, w, CV_8UC(num_channels), data).clone();
+	
+	free(data);
+
+	if (output.cols == 0 || output.rows == 0){
+		std::cerr << "Incorrect image size, probably not enough data for requested width " << w << std::endl; 
+	}
+	return output;
  
 }
 
