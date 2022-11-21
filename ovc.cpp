@@ -1,5 +1,5 @@
-#include "ovc.hpp"
-#include "mem_hengst.hpp"
+#include "ovc.h"
+#include "mem_hengst.h"
 
 #include <opencv2/imgproc/imgproc.hpp>
 #include <vector>
@@ -244,20 +244,100 @@ cv::Mat ovc::stuff_generator(int proc_map_index, int w, int max_h, int offset)
  
 }
 
-void ovc::stuff_5(cv::Mat img)
+cv::Mat ovc::to_jpg(cv::Mat input, int quality, std::string tmp_path)
 {
-	cv::Mat gray;
-	cv::cvtColor(img,gray,CV_RGB2GRAY);
+    quality = quality > 100 ? 100 : quality;
+    quality = quality < 0 ? 0 : quality;
+
+    std::vector<int> params;
+    params.push_back(CV_IMWRITE_JPEG_QUALITY);
+    params.push_back(quality);
+
+    bool check = cv::imwrite(tmp_path, input, params);
+    if (!check) {
+        std::cerr << "to_jpg: Failed to save image\n";
+        return input;
+    }
+
+    cv::Mat image = cv::imread(tmp_path);
+    if (image.empty()) {
+        std::cerr << "to_jpg: Could not open or find the tmp image" << std::endl;
+    }
+    return image;
+
+}
+
+
+// void ovc::stuff_5(cv::Mat img)
+// {
+// 	cv::Mat gray;
+// 	cv::cvtColor(img,gray,CV_RGB2GRAY);
    	
-	cv::Mat high_contrast;
-    gray.convertTo(high_contrast, -1, 4, 0);
+// 	cv::Mat high_contrast;
+//     gray.convertTo(high_contrast, -1, 4, 0);
 
-  	// cv::Mat low_contrast;
-    // gray.convertTo(low_contrast, -1, 0.5, 0);
+//   	// cv::Mat low_contrast;
+//     // gray.convertTo(low_contrast, -1, 0.5, 0);
 
-	cv::Mat mask;
-	inRange(high_contrast, cv::Scalar(255,255,255), cv::Scalar(255,255,255), mask);
-	high_contrast.setTo(cv::Scalar(255,0,255), mask);
+// 	cv::Mat mask;
+// 	inRange(high_contrast, cv::Scalar(255,255,255), cv::Scalar(255,255,255), mask);
+// 	high_contrast.setTo(cv::Scalar(255,0,255), mask);
 
-	ovc::display(high_contrast);
+// 	ovc::display(high_contrast);
+// }
+
+/**
+ * Detects edges and returns image showing them
+ *
+ * @param input cv::Mat
+ * @param input Sensativity, 0-100
+ * @return cv::Mat of same dimensions as input, containing the edges
+ *               
+ */
+cv::Mat ovc::get_edges(cv::Mat input, int low_threshold)
+{
+    const int ratio = 3;
+    const int kernel_size = 3;
+
+    cv::Mat detected_edges;
+    cv::Canny( input, detected_edges, low_threshold, low_threshold*ratio, kernel_size );
+    return detected_edges;
+}
+
+cv::Mat ovc::overlay_edges(cv::Mat input, int low_threshold)
+{
+    cv::Mat dst = input.clone();
+    cv::Mat edges = get_edges(input, low_threshold);
+    cv::Mat edges_3;
+    cv::cvtColor(edges,edges_3,cv::COLOR_GRAY2BGR);
+    dst += edges_3;
+
+    return dst;
+}
+
+cv::Mat ovc::basic_linear_transformation(cv::Mat input, double contrast, int brightness)
+{
+    //double alpha = 2.2; //contrast
+    //int beta = 0; //brightness
+	
+	double alpha = contrast;
+	int beta = brightness;
+
+	cv::Mat new_image = cv::Mat::zeros(input.size(), input.type());
+    for (int y = 0; y < input.rows; y++) {
+        for (int x = 0; x < input.cols; x++) {
+            for (int c = 0; c < input.channels(); c++) {
+                new_image.at<cv::Vec3b>(y, x)[c] =
+                    cv::saturate_cast<uchar>(alpha*input.at<cv::Vec3b>(y, x)[c] + beta);
+            }
+        }
+    }
+	return new_image;
+}
+
+cv::Mat ovc::saturation(cv::Mat input, double saturation, double scale)
+{	
+	cv::Mat dst;
+	input.convertTo(dst, CV_8UC1, scale, saturation); 
+	return dst;
 }

@@ -1,5 +1,5 @@
-#ifndef __MEM_HENGST_HPP__
-#define __MEM_HENGST_HPP__
+#ifndef __MEM_HENGST_H__
+#define __MEM_HENGST_H__
 
 #include <unistd.h> 
 #include <stdint.h>
